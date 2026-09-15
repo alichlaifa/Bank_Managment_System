@@ -1,0 +1,78 @@
+@startuml 13_seq_deposit
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 13
+skinparam defaultFontColor #1F2937
+skinparam ArrowColor #374151
+skinparam ArrowFontColor #111827
+skinparam ArrowFontSize 12
+skinparam classBackgroundColor #F9FAFB
+skinparam classBorderColor #6B7280
+skinparam classArrowColor #374151
+skinparam classFontColor #111827
+skinparam classFontStyle bold
+skinparam classAttributeFontColor #374151
+skinparam packageStyle rectangle
+skinparam packageBackgroundColor #EFF6FF
+skinparam packageBorderColor #60A5FA
+skinparam packageFontColor #1E3A8A
+skinparam packageFontStyle bold
+skinparam noteBackgroundColor #FEF3C7
+skinparam noteBorderColor #F59E0B
+skinparam noteFontColor #78350F
+skinparam componentStyle rectangle
+skinparam componentBackgroundColor #ECFDF5
+skinparam componentBorderColor #34D399
+skinparam componentFontColor #065F46
+skinparam actorBackgroundColor #FCE7F3
+skinparam actorBorderColor #EC4899
+skinparam usecaseBackgroundColor #FEF2F2
+skinparam usecaseBorderColor #F87171
+skinparam sequenceLifeLineBackgroundColor #F3F4F6
+skinparam sequenceLifeLineBorderColor #9CA3AF
+skinparam sequenceParticipantBackgroundColor #DBEAFE
+skinparam sequenceParticipantBorderColor #2563EB
+skinparam sequenceArrowColor #374151
+skinparam stateBackgroundColor #F0FDF4
+skinparam stateBorderColor #16A34A
+skinparam stateFontColor #14532D
+skinparam activityBackgroundColor #FEF9C3
+skinparam activityBorderColor #EAB308
+skinparam databaseBackgroundColor #EDE9FE
+skinparam databaseBorderColor #7C3AED
+title Sequence — Deposit
+actor Teller
+participant BankServer
+participant BankingService
+participant TransactionQueue
+participant ThreadPool
+  participant TransactionProcessor
+  participant AccountLockManager
+participant AccountRepository
+participant WalLogger
+participant AuditRepository
+
+Teller -> BankServer : deposit(accountId, amount)
+BankServer -> BankingService : deposit(accountId, amount)
+BankingService -> TransactionQueue : push(Deposit)
+TransactionQueue -> ThreadPool : notify worker
+ThreadPool -> TransactionProcessor : process(Deposit)
+BankingService -> AccountLockManager : lock(accountId)
+AccountLockManager --> BankingService : ScopedAccountLock
+BankingService -> AccountRepository : findById(accountId)
+AccountRepository --> BankingService : Account
+alt account found and amount valid
+  BankingService -> WalLogger : append(Deposit)
+  BankingService -> BankingService : account.deposit(amount)
+  BankingService -> AccountRepository : save(account)
+  BankingService -> WalLogger : markCommitted(txId)
+  BankingService -> AuditRepository : append(success)
+else
+  BankingService -> AuditRepository : append(failure)
+  BankingService --> BankServer : error Result
+end
+BankingService -> AccountLockManager : unlock()
+BankingService --> BankServer : Result
+BankServer --> Teller : OK
+@enduml

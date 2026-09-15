@@ -1,0 +1,21 @@
+# PlantUML jar — downloaded locally, not committed
+tools/plantuml.jar
+*.jar
+
+# Build artifacts (future C++ project)
+build/
+cmake-build-*/
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

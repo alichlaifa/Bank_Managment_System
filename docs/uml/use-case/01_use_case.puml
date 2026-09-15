@@ -1,0 +1,84 @@
+@startuml 01_use_case
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 13
+skinparam defaultFontColor #1F2937
+skinparam ArrowColor #374151
+skinparam ArrowFontColor #111827
+skinparam ArrowFontSize 12
+skinparam classBackgroundColor #F9FAFB
+skinparam classBorderColor #6B7280
+skinparam classArrowColor #374151
+skinparam classFontColor #111827
+skinparam classFontStyle bold
+skinparam classAttributeFontColor #374151
+skinparam packageStyle rectangle
+skinparam packageBackgroundColor #EFF6FF
+skinparam packageBorderColor #60A5FA
+skinparam packageFontColor #1E3A8A
+skinparam packageFontStyle bold
+skinparam noteBackgroundColor #FEF3C7
+skinparam noteBorderColor #F59E0B
+skinparam noteFontColor #78350F
+skinparam componentStyle rectangle
+skinparam componentBackgroundColor #ECFDF5
+skinparam componentBorderColor #34D399
+skinparam componentFontColor #065F46
+skinparam actorBackgroundColor #FCE7F3
+skinparam actorBorderColor #EC4899
+skinparam usecaseBackgroundColor #FEF2F2
+skinparam usecaseBorderColor #F87171
+skinparam sequenceLifeLineBackgroundColor #F3F4F6
+skinparam sequenceLifeLineBorderColor #9CA3AF
+skinparam sequenceParticipantBackgroundColor #DBEAFE
+skinparam sequenceParticipantBorderColor #2563EB
+skinparam sequenceArrowColor #374151
+skinparam stateBackgroundColor #F0FDF4
+skinparam stateBorderColor #16A34A
+skinparam stateFontColor #14532D
+skinparam activityBackgroundColor #FEF9C3
+skinparam activityBorderColor #EAB308
+skinparam databaseBackgroundColor #EDE9FE
+skinparam databaseBorderColor #7C3AED
+title Use Case Diagram
+left to right direction
+actor Customer
+actor Teller
+actor Admin
+actor "Background Scheduler" as Scheduler
+
+rectangle "Bank Management System" {
+  usecase "Login / Authenticate" as UC_Login
+  usecase "View Balance" as UC_Balance
+  usecase "Deposit Funds" as UC_Deposit
+  usecase "Withdraw Funds" as UC_Withdraw
+  usecase "Transfer Funds" as UC_Transfer
+  usecase "View Transaction History" as UC_History
+  usecase "Freeze / Unfreeze Account" as UC_Freeze
+  usecase "Create Customer / Account" as UC_Create
+  usecase "Audit Transactions" as UC_Audit
+  usecase "Accrue Interest" as UC_Interest
+  usecase "Snapshot / Recover" as UC_Recover
+}
+
+Customer --> UC_Login
+Customer --> UC_Balance
+Customer --> UC_Deposit
+Customer --> UC_Withdraw
+Customer --> UC_Transfer
+Customer --> UC_History
+
+Teller --> UC_Login
+Teller --> UC_Create
+Teller --> UC_Deposit
+Teller --> UC_Withdraw
+Teller --> UC_Freeze
+
+Admin --> UC_Login
+Admin --> UC_Audit
+Admin --> UC_Freeze
+
+Scheduler --> UC_Interest
+Scheduler --> UC_Recover
+@enduml

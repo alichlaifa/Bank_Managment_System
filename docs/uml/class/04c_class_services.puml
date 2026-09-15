@@ -1,0 +1,129 @@
+@startuml 04c_class_services
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 13
+skinparam defaultFontColor #1F2937
+skinparam ArrowColor #374151
+skinparam ArrowFontColor #111827
+skinparam ArrowFontSize 12
+skinparam classBackgroundColor #F9FAFB
+skinparam classBorderColor #6B7280
+skinparam classArrowColor #374151
+skinparam classFontColor #111827
+skinparam classFontStyle bold
+skinparam classAttributeFontColor #374151
+skinparam packageStyle rectangle
+skinparam packageBackgroundColor #EFF6FF
+skinparam packageBorderColor #60A5FA
+skinparam packageFontColor #1E3A8A
+skinparam packageFontStyle bold
+skinparam noteBackgroundColor #FEF3C7
+skinparam noteBorderColor #F59E0B
+skinparam noteFontColor #78350F
+skinparam componentStyle rectangle
+skinparam componentBackgroundColor #ECFDF5
+skinparam componentBorderColor #34D399
+skinparam componentFontColor #065F46
+skinparam actorBackgroundColor #FCE7F3
+skinparam actorBorderColor #EC4899
+skinparam usecaseBackgroundColor #FEF2F2
+skinparam usecaseBorderColor #F87171
+skinparam sequenceLifeLineBackgroundColor #F3F4F6
+skinparam sequenceLifeLineBorderColor #9CA3AF
+skinparam sequenceParticipantBackgroundColor #DBEAFE
+skinparam sequenceParticipantBorderColor #2563EB
+skinparam sequenceArrowColor #374151
+skinparam stateBackgroundColor #F0FDF4
+skinparam stateBorderColor #16A34A
+skinparam stateFontColor #14532D
+skinparam activityBackgroundColor #FEF9C3
+skinparam activityBorderColor #EAB308
+skinparam databaseBackgroundColor #EDE9FE
+skinparam databaseBorderColor #7C3AED
+title Services, Concurrency & API
+skinparam classAttributeIconSize 0
+
+package "Concurrency" {
+  class ThreadPool {
+    + submit(function<void()>) : future<void>
+    + stop() : void
+  }
+  class TransactionQueue {
+    + push(Transaction) : void
+    + pop() : optional<Transaction>
+  }
+  class AccountLockManager {
+    + lock(AccountId, AccountId) : ScopedAccountLocks
+    + lock(AccountId) : ScopedAccountLock
+  }
+  class ScopedAccountLocks <<RAII>>
+  class ScopedAccountLock <<RAII>>
+}
+
+package "Services" {
+  class AuthService {
+    + login(CustomerId, string) : optional<Session>
+    + logout(string) : void
+  }
+  class BankingService {
+    + deposit(AccountId, Money) : Result
+    + withdraw(AccountId, Money) : Result
+    + transfer(AccountId, AccountId, Money) : Result
+    + balance(AccountId) : optional<Money>
+    + history(AccountId) : vector<Transaction>
+    + freeze(AccountId, AccountStatus) : Result
+    + unfreeze(AccountId) : Result
+  }
+  class TransactionProcessor {
+    + start() : void
+    + stop() : void
+    + process(Transaction) : Result
+  }
+  class InterestService {
+    + accrueMonthlyInterest() : void
+  }
+  class Result <<VO>> {
+    - bool ok
+    - string error
+  }
+}
+
+package "API / UI" {
+  class BankServer {
+    + start() : void
+    + stop() : void
+    + login(CustomerId, string) : optional<Session>
+    + viewAudit(string, AuditFilter) : vector<AuditEntry>
+  }
+  class SessionManager {
+    + create(CustomerId, Role) : Session
+    + validate(string) : optional<Session>
+  }
+  class TcpConnection
+  class RestController
+  class CliClient
+}
+
+BankingService --> AccountLockManager
+BankingService ..> AccountRepository
+BankingService ..> AuditRepository
+BankingService ..> WalLogger
+AuthService ..> CustomerRepository
+AuthService ..> AuditRepository
+TransactionProcessor --> ThreadPool
+TransactionProcessor --> TransactionQueue
+TransactionProcessor --> AccountLockManager
+AuthService --> SessionManager
+BankServer --> AuthService
+BankServer --> BankingService
+BankServer --> SessionManager
+RestController --> BankServer
+CliClient --> TcpConnection
+
+note right of AccountLockManager
+  Transfers lock accounts
+  in sorted AccountId order
+  to avoid deadlock.
+end note
+@enduml

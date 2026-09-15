@@ -1,0 +1,169 @@
+@startuml 04a_class_domain
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 13
+skinparam defaultFontColor #1F2937
+skinparam ArrowColor #374151
+skinparam ArrowFontColor #111827
+skinparam ArrowFontSize 12
+skinparam classBackgroundColor #F9FAFB
+skinparam classBorderColor #6B7280
+skinparam classArrowColor #374151
+skinparam classFontColor #111827
+skinparam classFontStyle bold
+skinparam classAttributeFontColor #374151
+skinparam packageStyle rectangle
+skinparam packageBackgroundColor #EFF6FF
+skinparam packageBorderColor #60A5FA
+skinparam packageFontColor #1E3A8A
+skinparam packageFontStyle bold
+skinparam noteBackgroundColor #FEF3C7
+skinparam noteBorderColor #F59E0B
+skinparam noteFontColor #78350F
+skinparam componentStyle rectangle
+skinparam componentBackgroundColor #ECFDF5
+skinparam componentBorderColor #34D399
+skinparam componentFontColor #065F46
+skinparam actorBackgroundColor #FCE7F3
+skinparam actorBorderColor #EC4899
+skinparam usecaseBackgroundColor #FEF2F2
+skinparam usecaseBorderColor #F87171
+skinparam sequenceLifeLineBackgroundColor #F3F4F6
+skinparam sequenceLifeLineBorderColor #9CA3AF
+skinparam sequenceParticipantBackgroundColor #DBEAFE
+skinparam sequenceParticipantBorderColor #2563EB
+skinparam sequenceArrowColor #374151
+skinparam stateBackgroundColor #F0FDF4
+skinparam stateBorderColor #16A34A
+skinparam stateFontColor #14532D
+skinparam activityBackgroundColor #FEF9C3
+skinparam activityBorderColor #EAB308
+skinparam databaseBackgroundColor #EDE9FE
+skinparam databaseBorderColor #7C3AED
+title Domain Model
+skinparam classAttributeIconSize 0
+
+package "Value Objects" {
+  class PasswordHasher {
+    + hash(string pin, string salt) : PasswordHash
+    + verify(string pin, PasswordHash stored) : bool
+  }
+  class Money <<VO>> {
+    - int64_t cents
+    + add(Money) : Money
+    + subtract(Money) : Money
+    + equals(Money) : bool
+  }
+  class AccountId <<VO>> {
+    - uint64_t value
+  }
+  class CustomerId <<VO>> {
+    - uint64_t value
+  }
+  class TransactionId <<VO>> {
+    - uint64_t value
+  }
+  class PasswordHash <<VO>> {
+    - string algorithm
+    - string salt
+    - string hash
+  }
+}
+
+package "Entities" {
+  class Customer {
+    - CustomerId id
+    - string name
+    - PasswordHash pinHash
+    - Role role
+    + verifyPin(string pin, PasswordHasher& hasher) : bool
+  }
+  class Account {
+    - AccountId id
+    - CustomerId ownerId
+    - Money balance
+    - AccountStatus status
+    - uint64_t version
+    + deposit(Money amount) : void
+    + withdraw(Money) : void
+    + canWithdraw(Money) : bool
+  }
+  class Session {
+    - string token
+    - CustomerId customerId
+    - Role role
+    - time_point expiresAt
+  }
+  class AuditEntry {
+    - uint64_t id
+    - time_point timestamp
+    - CustomerId actorId
+    - string action
+    - string details
+  }
+}
+
+package "Transactions" {
+  abstract class Transaction {
+    - TransactionId id
+    - time_point timestamp
+    - TransactionStatus status
+    + validate() : bool
+    + apply(span<Account> accounts) : void
+    ' implementation may use std::variant + std::visit instead - UML records intent, not mechanism.
+    + serialize() : string
+  }
+  class Deposit {
+    - AccountId accountId
+    - Money amount
+  }
+  class Withdraw {
+    - AccountId accountId
+    - Money amount
+  }
+  class Transfer {
+    - AccountId fromId
+    - AccountId toId
+    - Money amount
+  }
+}
+
+package "Enums" {
+  enum Role {
+    CUSTOMER
+    TELLER
+    ADMIN
+  }
+  enum AccountStatus {
+    ACTIVE
+    FROZEN
+    CLOSED
+  }
+  enum TransactionStatus {
+    PENDING
+    VALIDATED
+    WAL_WRITTEN
+    APPLIED
+    COMMITTED
+    FAILED
+    ROLLED_BACK
+  }
+}
+
+Customer "1" --> "*" Account : owns
+Account "1" --> "*" Transaction : participates
+Transaction <|-- Deposit
+Transaction <|-- Withdraw
+Transaction <|-- Transfer
+Customer "1" --> "1" PasswordHash
+Customer --> Role
+Account --> AccountStatus
+Account --> Money
+Account --> AccountId
+Transaction --> TransactionStatus
+Transaction --> TransactionId
+Session --> Customer
+Session --> Role
+AuditEntry --> CustomerId
+@enduml

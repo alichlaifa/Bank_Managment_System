@@ -1,0 +1,86 @@
+@startuml 03_component
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 13
+skinparam defaultFontColor #1F2937
+skinparam ArrowColor #374151
+skinparam ArrowFontColor #111827
+skinparam ArrowFontSize 12
+skinparam classBackgroundColor #F9FAFB
+skinparam classBorderColor #6B7280
+skinparam classArrowColor #374151
+skinparam classFontColor #111827
+skinparam classFontStyle bold
+skinparam classAttributeFontColor #374151
+skinparam packageStyle rectangle
+skinparam packageBackgroundColor #EFF6FF
+skinparam packageBorderColor #60A5FA
+skinparam packageFontColor #1E3A8A
+skinparam packageFontStyle bold
+skinparam noteBackgroundColor #FEF3C7
+skinparam noteBorderColor #F59E0B
+skinparam noteFontColor #78350F
+skinparam componentStyle rectangle
+skinparam componentBackgroundColor #ECFDF5
+skinparam componentBorderColor #34D399
+skinparam componentFontColor #065F46
+skinparam actorBackgroundColor #FCE7F3
+skinparam actorBorderColor #EC4899
+skinparam usecaseBackgroundColor #FEF2F2
+skinparam usecaseBorderColor #F87171
+skinparam sequenceLifeLineBackgroundColor #F3F4F6
+skinparam sequenceLifeLineBorderColor #9CA3AF
+skinparam sequenceParticipantBackgroundColor #DBEAFE
+skinparam sequenceParticipantBorderColor #2563EB
+skinparam sequenceArrowColor #374151
+skinparam stateBackgroundColor #F0FDF4
+skinparam stateBorderColor #16A34A
+skinparam stateFontColor #14532D
+skinparam activityBackgroundColor #FEF9C3
+skinparam activityBorderColor #EAB308
+skinparam databaseBackgroundColor #EDE9FE
+skinparam databaseBorderColor #7C3AED
+title Component Diagram
+left to right direction
+
+package "Client Tier" {
+  component [CLI Client] as CLI
+}
+package "Server Tier" {
+  component [TCP Server] as TCP
+  component [REST API] as REST
+  component [Banking Service] as Bank
+  component [Auth Service] as Auth
+  component [Transaction Processor] as TxProc
+}
+package "Runtime Tier" {
+  component [Thread Pool] as Pool
+  component [Transaction Queue] as Queue
+  component [Account Lock Manager] as Locks
+  component [Session Manager] as Sessions
+}
+package "Storage Tier" {
+  component [WAL Logger] as WAL
+  component [Snapshot Store] as Snap
+  component [Repositories] as Repos
+  database "SQLite" as DB
+  folder "Disk Files" as Disk
+}
+
+CLI --> TCP
+REST --> Bank
+TCP --> Auth
+TCP --> Bank
+Bank --> TxProc
+TxProc --> Queue
+Pool --> Queue
+Pool --> Locks
+Pool --> Repos
+TxProc --> WAL
+WAL --> Disk
+Repos --> DB
+Snap --> Disk
+Auth --> Repos
+Auth --> Sessions
+@enduml
