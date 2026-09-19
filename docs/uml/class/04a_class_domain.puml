@@ -46,14 +46,22 @@ skinparam classAttributeIconSize 0
 
 package "Value Objects" {
   class PasswordHasher {
-    + hash(string pin, string salt) : PasswordHash
+    + create(string pin) : PasswordHash
+    + create_with_salt(string pin, string salt_hex) : PasswordHash
     + verify(string pin, PasswordHash stored) : bool
   }
+
+  note bottom of PasswordHasher
+    PasswordHasher is a static utility, no instances.
+  end note
   class Money <<VO>> {
     - int64_t cents
-    + add(Money) : Money
-    + subtract(Money) : Money
-    + equals(Money) : bool
+    + plus(Money) : Money
+    + minus(Money) : Money
+    + operator==(Money) : bool
+    + can_subtract(Money) : bool
+    + is_positive() : bool
+    + zero() : Money
   }
   class AccountId <<VO>> {
     - uint64_t value
@@ -64,10 +72,15 @@ package "Value Objects" {
   class TransactionId <<VO>> {
     - uint64_t value
   }
+  note right of AccountId
+    Implemented as Id<Tag> template with empty tag structs.
+    Provides type safety: AccountId cannot be passed where
+    CustomerId is expected.
+  end note
   class PasswordHash <<VO>> {
     - string algorithm
     - string salt
-    - string hash
+    - string digest
   }
 }
 
@@ -77,7 +90,7 @@ package "Entities" {
     - string name
     - PasswordHash pinHash
     - Role role
-    + verifyPin(string pin, PasswordHasher& hasher) : bool
+    + verify_pin(string pin) : bool
   }
   class Account {
     - AccountId id
@@ -93,7 +106,8 @@ package "Entities" {
     - string token
     - CustomerId customerId
     - Role role
-    - time_point expiresAt
+    - state : SessionState
+    - time_point expires_at
   }
   class AuditEntry {
     - uint64_t id
@@ -105,14 +119,35 @@ package "Entities" {
 }
 
 package "Transactions" {
-  abstract class Transaction {
-    - TransactionId id
-    - time_point timestamp
-    - TransactionStatus status
-    + validate() : bool
-    + apply(span<Account> accounts) : void
-    ' implementation may use std::variant + std::visit instead - UML records intent, not mechanism.
-    + serialize() : string
+  class TransactionRecord <<VO>> {
+    - id : TransactionId
+    - timestamp : time_point
+    - type : TransactionType
+    - state : TransactionState
+    - from : optional<AccountId>
+    - to : optional<AccountId>
+    - amount : Money
+  }
+
+  class Transaction <<variant>> {
+    <<std::variant<Deposit, Withdraw, Transfer>>
+  }
+
+  note right of Transaction
+    Implemented as std::variant, not inheritance.
+    Operations are free functions in namespace txn::.
+  end note
+
+  class TransactionOps <<utility>> {
+    + type_of(txn) : TransactionType
+    + amount_of(txn) : Money
+    + debit_account(txn) : optional<AccountId>
+    + credit_account(txn) : optional<AccountId>
+    + involved_accounts(txn) : vector<AccountId>
+    + validate(txn, accounts) : bool
+    + apply(txn, accounts) : void
+    + project_transaction(id, txn) : TransactionRecord
+    + materialize_transaction(record) : Transaction
   }
   class Deposit {
     - AccountId accountId
@@ -131,23 +166,29 @@ package "Transactions" {
 
 package "Enums" {
   enum Role {
-    CUSTOMER
-    TELLER
-    ADMIN
+    Customer
+    Teller
+    Admin
   }
   enum AccountStatus {
-    ACTIVE
-    FROZEN
-    CLOSED
+    Active
+    Frozen
+    Closed
   }
-  enum TransactionStatus {
-    PENDING
-    VALIDATED
-    WAL_WRITTEN
-    APPLIED
-    COMMITTED
-    FAILED
-    ROLLED_BACK
+  enum TransactionState {
+    Pending
+    Validated
+    WalWritten
+    Applied
+    Committed
+    Failed
+    RolledBack
+  }
+  enum SessionState {
+    Anonymous
+    Authenticated
+    Expired
+    Revoked
   }
 }
 
@@ -161,7 +202,7 @@ Customer --> Role
 Account --> AccountStatus
 Account --> Money
 Account --> AccountId
-Transaction --> TransactionStatus
+Transaction --> TransactionState
 Transaction --> TransactionId
 Session --> Customer
 Session --> Role

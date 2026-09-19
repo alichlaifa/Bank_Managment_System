@@ -44,29 +44,34 @@ skinparam databaseBorderColor #7C3AED
 title Services, Concurrency & API
 skinparam classAttributeIconSize 0
 
+note
+  All persisted timestamps use timeutil::to_unix_ms(int64).
+  SteadyClock will be added for benchmark durations.
+end note
+
 package "Concurrency" {
-  class ThreadPool {
+  class ThreadPool <<planned>> {
     + submit(function<void()>) : future<void>
     + stop() : void
   }
-  class TransactionQueue {
+  class TransactionQueue <<planned>> {
     + push(Transaction) : void
     + pop() : optional<Transaction>
   }
-  class AccountLockManager {
+  class AccountLockManager <<planned>> {
     + lock(AccountId, AccountId) : ScopedAccountLocks
     + lock(AccountId) : ScopedAccountLock
   }
-  class ScopedAccountLocks <<RAII>>
-  class ScopedAccountLock <<RAII>>
+  class ScopedAccountLocks <<planned>> <<RAII>>
+  class ScopedAccountLock <<planned>> <<RAII>>
 }
 
 package "Services" {
-  class AuthService {
+  class AuthService <<planned>> {
     + login(CustomerId, string) : optional<Session>
     + logout(string) : void
   }
-  class BankingService {
+  class BankingService <<planned>> {
     + deposit(AccountId, Money) : Result
     + withdraw(AccountId, Money) : Result
     + transfer(AccountId, AccountId, Money) : Result
@@ -75,34 +80,43 @@ package "Services" {
     + freeze(AccountId, AccountStatus) : Result
     + unfreeze(AccountId) : Result
   }
-  class TransactionProcessor {
+  class TransactionProcessor <<planned>> {
     + start() : void
     + stop() : void
     + process(Transaction) : Result
   }
-  class InterestService {
+  class InterestService <<planned>> {
     + accrueMonthlyInterest() : void
   }
-  class Result <<VO>> {
-    - bool ok
-    - string error
+  class Result<T> <<VO>> {
+    + success(T) : Result
+    + failure(string) : Result
+    + ok() : bool
+    + value() : T
+    + error() : string
   }
+
+  note right of Result
+    Also specialized for void.
+    Intended for the pending services layer; currently 
+    uninstantiated.
+  end note
 }
 
 package "API / UI" {
-  class BankServer {
+  class BankServer <<planned>> {
     + start() : void
     + stop() : void
     + login(CustomerId, string) : optional<Session>
     + viewAudit(string, AuditFilter) : vector<AuditEntry>
   }
-  class SessionManager {
+  class SessionManager <<planned>> {
     + create(CustomerId, Role) : Session
     + validate(string) : optional<Session>
   }
-  class TcpConnection
-  class RestController
-  class CliClient
+  class TcpConnection <<planned>>
+  class RestController <<planned>>
+  class CliClient <<planned>>
 }
 
 BankingService --> AccountLockManager

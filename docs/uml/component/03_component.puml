@@ -45,20 +45,20 @@ title Component Diagram
 left to right direction
 
 package "Client Tier" {
-  component [CLI Client] as CLI
+  component [CLI Client] as CLI <<planned>>
 }
 package "Server Tier" {
-  component [TCP Server] as TCP
-  component [REST API] as REST
-  component [Banking Service] as Bank
-  component [Auth Service] as Auth
-  component [Transaction Processor] as TxProc
+  component [TCP Server] as TCP <<planned>>
+  component [REST API] as REST <<planned>>
+  component [Banking Service] as Bank <<planned>>
+  component [Auth Service] as Auth <<planned>>
+  component [Transaction Processor] as TxProc <<planned>>
 }
 package "Runtime Tier" {
-  component [Thread Pool] as Pool
-  component [Transaction Queue] as Queue
-  component [Account Lock Manager] as Locks
-  component [Session Manager] as Sessions
+  component [Thread Pool] as Pool <<planned>>
+  component [Transaction Queue] as Queue <<planned>>
+  component [Account Lock Manager] as Locks <<planned>>
+  component [Session Manager] as Sessions <<planned>>
 }
 package "Storage Tier" {
   component [WAL Logger] as WAL

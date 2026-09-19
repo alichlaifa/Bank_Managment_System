@@ -47,7 +47,7 @@ skinparam classAttributeIconSize 0
 package "Repository Interfaces" {
   interface AccountRepository {
     + findById(AccountId) : optional<Account>
-    + findAll() : vector<Account>
+    + all() : vector<Account>
     + save(Account) : void
     + remove(AccountId) : void
   }
@@ -56,12 +56,12 @@ package "Repository Interfaces" {
     + save(Customer) : void
   }
   interface TransactionRepository {
-    + append(Transaction) : void
-    + findByAccount(AccountId) : vector<Transaction>
+    + append(TransactionRecord) : void
+    + for_account(AccountId) : vector<TransactionRecord>
   }
   interface AuditRepository {
     + append(AuditEntry) : void
-    + findAll(optional<AuditFilter> filters) : vector<AuditEntry>
+    + find(AuditFilter) : vector<AuditEntry>
   }
 }
 
@@ -85,9 +85,18 @@ package "Storage Services" {
     + markCommitted(TransactionId) : void
     + replay(optional<LSN> fromLsn) : vector<Transaction>
   }
+
+  note bottom of WalLogger
+    Fixed-width 16-char hex id + 1 state byte + JSON payload + \n.
+    mark_committed flips the state byte in place.
+  end note
   class SnapshotStore {
     + save(vector<Account>) : void
     + load() : Snapshot          // accounts + lastLSN
+  }
+  class SqliteDatabase {
+    + exec(sql) : void
+    + prepare(sql) : Statement
   }
   interface Serializer {
     + serialize(Transaction) : string
@@ -109,4 +118,8 @@ Serializer <|.. JsonSerializer
 Serializer <|.. BinarySerializer
 WalLogger --> Serializer
 SnapshotStore --> Serializer
+SqliteAccountRepository ..> SqliteDatabase
+SqliteCustomerRepository ..> SqliteDatabase
+SqliteTransactionRepository ..> SqliteDatabase
+SqliteAuditRepository ..> SqliteDatabase
 @enduml
