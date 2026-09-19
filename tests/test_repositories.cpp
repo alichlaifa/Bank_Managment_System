@@ -2,10 +2,19 @@
 
 #include "TestSupport.h"
 
-#include "domain/Entities.h"
-#include "persistence/InMemoryRepository.h"
+#include "domain/Account.h"
+#include "domain/AuditEntry.h"
+#include "domain/Customer.h"
+#include "domain/PasswordHasher.h"
+#include "domain/Transaction.h"
+#include "persistence/AuditFilter.h"
+#include "persistence/InMemoryAccountRepository.h"
+#include "persistence/InMemoryAuditRepository.h"
+#include "persistence/SqliteAccountRepository.h"
+#include "persistence/SqliteAuditRepository.h"
+#include "persistence/SqliteCustomerRepository.h"
 #include "persistence/SqliteDatabase.h"
-#include "persistence/SqliteRepository.h"
+#include "persistence/SqliteTransactionRepository.h"
 
 using namespace bank;
 

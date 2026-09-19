@@ -1,7 +1,8 @@
 #include <doctest.h>
 
-#include "domain/Entities.h"
+#include "domain/Account.h"
 #include "domain/Transaction.h"
+#include "domain/TransactionOps.h"
 
 using namespace bank;
 

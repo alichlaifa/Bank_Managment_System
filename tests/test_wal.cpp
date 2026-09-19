@@ -3,6 +3,7 @@
 #include "TestSupport.h"
 
 #include "domain/Transaction.h"
+#include "domain/TransactionOps.h"
 #include "persistence/SnapshotStore.h"
 #include "persistence/WalLogger.h"
 

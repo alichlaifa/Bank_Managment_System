@@ -1,40 +1,12 @@
 #pragma once
 
-#include "core/TimeUtil.h"
-#include "domain/Money.h"
-#include "domain/Password.h"
 #include "domain/Types.h"
+#include "domain/Money.h"
 
-#include <chrono>
 #include <cstdint>
-#include <string>
-#include <string_view>
+#include <stdexcept>
 
 namespace bank {
-
-class Customer {
-public:
-    Customer(CustomerId id, std::string name, PasswordHash pin_hash, Role role)
-        : id_{id}, name_{std::move(name)}, pin_hash_{std::move(pin_hash)}, role_{role}
-    {
-    }
-
-    [[nodiscard]] CustomerId id() const noexcept { return id_; }
-    [[nodiscard]] const std::string& name() const noexcept { return name_; }
-    [[nodiscard]] const PasswordHash& pin_hash() const noexcept { return pin_hash_; }
-    [[nodiscard]] Role role() const noexcept { return role_; }
-
-    [[nodiscard]] bool verify_pin(std::string_view pin) const
-    {
-        return PasswordHasher::verify(pin, pin_hash_);
-    }
-
-private:
-    CustomerId id_;
-    std::string name_;
-    PasswordHash pin_hash_;
-    Role role_;
-};
 
 // An account keeps an optimistic version counter: every mutation bumps it, so
 // the concurrent processor can detect a lost update when persisting. The
@@ -99,24 +71,6 @@ private:
     // TODO: version is unused until the concurrency milestone; will
     //       drive optimistic-retry on save().
     uint64_t version_;
-};
-
-struct Session {
-    std::string token;
-    CustomerId customer_id;
-    Role role;
-    SessionState state{SessionState::Anonymous};
-    timeutil::Clock::time_point expires_at;
-};
-
-// Append-only audit record. Ids are assigned by the caller (the audit service);
-// the timestamp is wall-clock time at write time.
-struct AuditEntry {
-    uint64_t id{0};
-    timeutil::Clock::time_point timestamp;
-    CustomerId actor_id;
-    std::string action;
-    std::string details;
 };
 
 } // namespace bank

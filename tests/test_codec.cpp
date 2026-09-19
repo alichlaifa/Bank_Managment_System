@@ -1,6 +1,6 @@
 #include <doctest.h>
 
-#include "domain/Entities.h"
+#include "domain/Account.h"
 #include "domain/Transaction.h"
 #include "persistence/Serializer.h"
 

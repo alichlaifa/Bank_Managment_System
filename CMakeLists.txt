@@ -59,12 +59,17 @@ find_package(Threads REQUIRED)
 # Core library
 #
 add_library(bank
-    src/domain/Password.cpp
+    src/domain/PasswordHasher.cpp
     src/domain/Transaction.cpp
+    src/domain/TransactionOps.cpp
     src/persistence/Json.cpp
     src/persistence/Serializer.cpp
     src/persistence/SqliteDatabase.cpp
-    src/persistence/SqliteRepository.cpp
+    src/persistence/SqliteHelpers.cpp
+    src/persistence/SqliteAccountRepository.cpp
+    src/persistence/SqliteCustomerRepository.cpp
+    src/persistence/SqliteTransactionRepository.cpp
+    src/persistence/SqliteAuditRepository.cpp
     src/persistence/WalLogger.cpp
     src/persistence/SnapshotStore.cpp
 )

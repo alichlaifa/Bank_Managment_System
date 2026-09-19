@@ -1,4 +1,4 @@
-#include "domain/Password.h"
+#include "domain/PasswordHasher.h"
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>

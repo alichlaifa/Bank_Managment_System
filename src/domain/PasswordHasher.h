@@ -1,15 +1,10 @@
 #pragma once
 
-#include <string>
+#include "domain/PasswordHash.h"
+
 #include <string_view>
 
 namespace bank {
-
-struct PasswordHash {
-    std::string algorithm;
-    std::string salt;   // hex encoded
-    std::string digest; // hex encoded
-};
 
 // PIN credentials are never stored in plaintext. The :PBKDF2: step derives a
 // digest from the PIN plus a per-user random salt; verifying re-derives a

@@ -22,3 +22,6 @@ Makefile
 # OS
 .DS_Store
 Thumbs.db
+
+# Internal docs
+docs/PROJECT_OVERVIEW.md

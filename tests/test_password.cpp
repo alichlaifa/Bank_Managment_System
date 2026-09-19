@@ -1,6 +1,7 @@
 #include <doctest.h>
 
-#include "domain/Password.h"
+#include "domain/PasswordHash.h"
+#include "domain/PasswordHasher.h"
 
 using bank::PasswordHash;
 using bank::PasswordHasher;
