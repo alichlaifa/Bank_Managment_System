@@ -1,4 +1,5 @@
-#include <doctest.h>
+#include <gtest/gtest.h>
+#include "domain/Ostream.h"
 
 #include "domain/Money.h"
 
@@ -6,41 +7,41 @@
 
 using bank::Money;
 
-TEST_CASE("Money stores integer cents exactly")
+TEST(Money, StoresIntegerCentsExactly)
 {
     Money amount{Money::zero()};
-    REQUIRE(amount.cents() == 0);
-    REQUIRE(Money{123'456}.cents() == 123'456);
+    ASSERT_TRUE(amount.cents() == 0);
+    ASSERT_TRUE(Money{123'456}.cents() == 123'456);
 }
 
-TEST_CASE("Money rejects negative construction")
+TEST(Money, RejectsNegativeConstruction)
 {
-    REQUIRE_THROWS_AS(Money{-1}, std::invalid_argument);
+    ASSERT_THROW(Money{-1}, std::invalid_argument);
 }
 
-TEST_CASE("Money subtraction cannot go below zero")
+TEST(Money, SubtractionCannotGoBelowZero)
 {
     const Money balance{Money{1'000}};
-    REQUIRE((balance - Money{100}).cents() == 900);
-    REQUIRE_THROWS_AS(balance - Money{1'001}, std::underflow_error);
+    ASSERT_TRUE((balance - Money{100}).cents() == 900);
+    ASSERT_THROW(balance - Money{1'001}, std::underflow_error);
 }
 
-TEST_CASE("Money addition overflow is detected")
+TEST(Money, AdditionOverflowIsDetected)
 {
     const Money huge{std::numeric_limits<int64_t>::max()};
-    REQUIRE_THROWS_AS(huge + Money{1}, std::overflow_error);
+    ASSERT_THROW(huge + Money{1}, std::overflow_error);
 }
 
-TEST_CASE("Money comparisons are total")
+TEST(Money, ComparisonsAreTotal)
 {
-    REQUIRE(Money{10} == Money{10});
-    REQUIRE(Money{5} < Money{10});
-    REQUIRE(Money{99} > Money{1});
+    ASSERT_EQ(Money{10}, Money{10});
+    ASSERT_TRUE(Money{5} < Money{10});
+    ASSERT_TRUE(Money{99} > Money{1});
 }
 
-TEST_CASE("can_subtract answers without throwing")
+TEST(Money, CanSubtractAnswersWithoutThrowing)
 {
     const Money balance{Money{500}};
-    REQUIRE(balance.can_subtract(Money{500}));
-    REQUIRE_FALSE(balance.can_subtract(Money{501}));
+    ASSERT_TRUE(balance.can_subtract(Money{500}));
+    ASSERT_FALSE(balance.can_subtract(Money{501}));
 }

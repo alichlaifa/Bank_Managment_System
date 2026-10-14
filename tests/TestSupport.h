@@ -1,5 +1,7 @@
 #pragma once
 
+#include "domain/Ostream.h"
+
 #include <filesystem>
 #include <string>
 #include <unistd.h>
@@ -25,5 +27,5 @@ public:
     std::filesystem::path path;
 
 private:
-    static int next_id_;
+    inline static int next_id_ = 0;
 };

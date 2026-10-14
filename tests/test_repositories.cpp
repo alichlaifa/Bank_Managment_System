@@ -1,4 +1,4 @@
-#include <doctest.h>
+#include <gtest/gtest.h>
 
 #include "TestSupport.h"
 
@@ -18,41 +18,41 @@
 
 using namespace bank;
 
-TEST_CASE("InMemoryAccountRepository round-trips a save/find/remove cycle")
+TEST(Repositories, InMemoryAccountRepositoryRoundTripsASaveFindRemoveCycle)
 {
     InMemoryAccountRepository repo;
     const Account account{AccountId{1}, CustomerId{2}, Money{500}, AccountStatus::Active, 0};
 
-    REQUIRE_FALSE(repo.find_by_id(AccountId{1}).has_value());
+    ASSERT_FALSE(repo.find_by_id(AccountId{1}).has_value());
     repo.save(account);
-    REQUIRE(repo.find_by_id(AccountId{1}).has_value());
-    REQUIRE(repo.find_by_id(AccountId{1})->balance() == Money{500});
-    REQUIRE(repo.all().size() == 1);
+    ASSERT_TRUE(repo.find_by_id(AccountId{1}).has_value());
+    ASSERT_EQ(repo.find_by_id(AccountId{1})->balance(), Money{500});
+    ASSERT_TRUE(repo.all().size() == 1);
 
     repo.remove(AccountId{1});
-    REQUIRE(repo.all().empty());
+    ASSERT_TRUE(repo.all().empty());
 }
 
-TEST_CASE("InMemoryAuditRepository filters on all fields")
+TEST(Repositories, InMemoryAuditRepositoryFiltersOnAllFields)
 {
     InMemoryAuditRepository repo;
     repo.append(AuditEntry{1, timeutil::now(), CustomerId{1}, "LOGIN", "ok"});
     repo.append(AuditEntry{2, timeutil::now(), CustomerId{2}, "TRANSFER", "700"});
 
     AuditFilter all;
-    REQUIRE(repo.find(all).size() == 2);
+    ASSERT_TRUE(repo.find(all).size() == 2);
 
     AuditFilter by_action;
     by_action.action = "LOGIN";
-    REQUIRE(repo.find(by_action).size() == 1);
+    ASSERT_TRUE(repo.find(by_action).size() == 1);
 
     AuditFilter by_actor;
     by_actor.actor = CustomerId{2};
-    REQUIRE(repo.find(by_actor).size() == 1);
-    REQUIRE(repo.find(by_actor)[0].id == 2);
+    ASSERT_TRUE(repo.find(by_actor).size() == 1);
+    ASSERT_TRUE(repo.find(by_actor)[0].id == 2);
 }
 
-TEST_CASE("SQLite repositories persist across separate database connections")
+TEST(Repositories, SqliteRepositoriesPersistAcrossSeparateDatabaseConnections)
 {
     TempDir dir{"sqlite_persist"};
     const auto db_path = dir.path / "bank.db";
@@ -75,22 +75,22 @@ TEST_CASE("SQLite repositories persist across separate database connections")
         SqliteCustomerRepository customers{db};
         SqliteAccountRepository accounts{db};
 
-        REQUIRE_FALSE(customers.find_by_id(CustomerId{9}).has_value());
+        ASSERT_FALSE(customers.find_by_id(CustomerId{9}).has_value());
 
         const auto customer = customers.find_by_id(CustomerId{1});
-        REQUIRE(customer.has_value());
-        REQUIRE(customer->verify_pin("4321"));
+        ASSERT_TRUE(customer.has_value());
+        ASSERT_TRUE(customer->verify_pin("4321"));
 
         const auto account = accounts.find_by_id(AccountId{1});
-        REQUIRE(account.has_value());
-        REQUIRE(account->balance() == Money{1'250});
-        REQUIRE(account->version() == 0);
+        ASSERT_TRUE(account.has_value());
+        ASSERT_EQ(account->balance(), Money{1'250});
+        ASSERT_TRUE(account->version() == 0);
         accounts.remove(AccountId{1});
-        REQUIRE(accounts.all().empty());
+        ASSERT_TRUE(accounts.all().empty());
     }
 }
 
-TEST_CASE("SQLite transaction and audit repositories store and filter correctly")
+TEST(Repositories, SqliteTransactionAndAuditRepositoriesStoreAndFilterCorrectly)
 {
     TempDir dir{"sqlite_txns"};
     SqliteDatabase db{dir.path / "test.db"};
@@ -107,9 +107,9 @@ TEST_CASE("SQLite transaction and audit repositories store and filter correctly"
     txns.append(record);
 
     const auto found = txns.for_account(AccountId{4});
-    REQUIRE(found.size() == 1);
-    REQUIRE(found[0].amount == Money{250});
-    REQUIRE(txns.for_account(AccountId{5}).empty());
+    ASSERT_TRUE(found.size() == 1);
+    ASSERT_EQ(found[0].amount, Money{250});
+    ASSERT_TRUE(txns.for_account(AccountId{5}).empty());
 
     SqliteAuditRepository audit{db};
     audit.append(AuditEntry{1, timeutil::now(), CustomerId{3}, "LOGIN", "ok"});
@@ -117,13 +117,13 @@ TEST_CASE("SQLite transaction and audit repositories store and filter correctly"
 
     AuditFilter action_filter;
     action_filter.action = "LOGIN";
-    REQUIRE(audit.find(action_filter).size() == 1);
+    ASSERT_TRUE(audit.find(action_filter).size() == 1);
 
     AuditFilter actor_filter;
     actor_filter.actor = CustomerId{3};
-    REQUIRE(audit.find(actor_filter).size() == 2);
+    ASSERT_TRUE(audit.find(actor_filter).size() == 2);
 
     AuditFilter miss_filter;
     miss_filter.actor = CustomerId{99};
-    REQUIRE(audit.find(miss_filter).empty());
+    ASSERT_TRUE(audit.find(miss_filter).empty());
 }

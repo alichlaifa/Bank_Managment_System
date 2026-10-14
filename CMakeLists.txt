@@ -90,19 +90,24 @@ target_link_libraries(bank
 bank_enable_warnings(bank)
 
 #
+# GoogleTest / GoogleMock (vendored via FetchContent)
+#
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.15.2
+)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+#
 # Unit tests
 #
 if(BANK_BUILD_TESTS)
     enable_testing()
 
-    add_library(bank_test_support INTERFACE)
-    target_include_directories(bank_test_support SYSTEM INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
-    target_include_directories(bank_test_support INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-
     add_executable(bank_tests
-        tests/test_main.cpp
         tests/test_money.cpp
         tests/test_password.cpp
         tests/test_domain.cpp
@@ -111,7 +116,9 @@ if(BANK_BUILD_TESTS)
         tests/test_repositories.cpp
         tests/test_wal.cpp
     )
-    target_link_libraries(bank_tests PRIVATE bank bank_test_support)
+    target_link_libraries(bank_tests PRIVATE bank GTest::gtest_main)
+    target_include_directories(bank_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests)
     bank_enable_warnings(bank_tests)
 
     add_test(NAME bank_tests COMMAND bank_tests)
