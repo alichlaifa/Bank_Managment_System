@@ -73,7 +73,7 @@ package "Value Objects" {
     - uint64_t value
   }
   note right of AccountId
-    Implemented as Id<Tag> template with empty tag structs.
+    Implemented as Id[Tag] template with empty tag structs.
     Provides type safety: AccountId cannot be passed where
     CustomerId is expected.
   end note
@@ -124,13 +124,13 @@ package "Transactions" {
     - timestamp : time_point
     - type : TransactionType
     - state : TransactionState
-    - from : optional<AccountId>
-    - to : optional<AccountId>
+    - from : optional[AccountId]
+    - to : optional[AccountId]
     - amount : Money
   }
 
   class Transaction <<variant>> {
-    <<std::variant<Deposit, Withdraw, Transfer>>
+    <<std::variant[Deposit, Withdraw, Transfer]>
   }
 
   note right of Transaction
@@ -141,9 +141,9 @@ package "Transactions" {
   class TransactionOps <<utility>> {
     + type_of(txn) : TransactionType
     + amount_of(txn) : Money
-    + debit_account(txn) : optional<AccountId>
-    + credit_account(txn) : optional<AccountId>
-    + involved_accounts(txn) : vector<AccountId>
+    + debit_account(txn) : optional[AccountId]
+    + credit_account(txn) : optional[AccountId]
+    + involved_accounts(txn) : vector[AccountId]
     + validate(txn, accounts) : bool
     + apply(txn, accounts) : void
     + project_transaction(id, txn) : TransactionRecord

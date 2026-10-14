@@ -46,22 +46,22 @@ skinparam classAttributeIconSize 0
 
 package "Repository Interfaces" {
   interface AccountRepository {
-    + findById(AccountId) : optional<Account>
-    + all() : vector<Account>
+    + findById(AccountId) : optional[Account]
+    + all() : vector[Account]
     + save(Account) : void
     + remove(AccountId) : void
   }
   interface CustomerRepository {
-    + findById(CustomerId) : optional<Customer>
+    + findById(CustomerId) : optional[Customer]
     + save(Customer) : void
   }
   interface TransactionRepository {
     + append(TransactionRecord) : void
-    + for_account(AccountId) : vector<TransactionRecord>
+    + for_account(AccountId) : vector[TransactionRecord]
   }
   interface AuditRepository {
     + append(AuditEntry) : void
-    + find(AuditFilter) : vector<AuditEntry>
+    + find(AuditFilter) : vector[AuditEntry]
   }
 }
 
@@ -83,7 +83,7 @@ package "Storage Services" {
   class WalLogger {
     + append(Transaction) : void
     + markCommitted(TransactionId) : void
-    + replay(optional<LSN> fromLsn) : vector<Transaction>
+    + replay(optional[LSN] fromLsn) : vector[Transaction]
   }
 
   note bottom of WalLogger
@@ -91,7 +91,7 @@ package "Storage Services" {
     mark_committed flips the state byte in place.
   end note
   class SnapshotStore {
-    + save(vector<Account>) : void
+    + save(vector[Account]) : void
     + load() : Snapshot          // accounts + lastLSN
   }
   class SqliteDatabase {
