@@ -59,6 +59,7 @@ find_package(Threads REQUIRED)
 # Core library
 #
 add_library(bank
+    src/concurrency/AccountLockManager.cpp
     src/domain/PasswordHasher.cpp
     src/domain/Transaction.cpp
     src/domain/TransactionOps.cpp
@@ -115,6 +116,7 @@ if(BANK_BUILD_TESTS)
         tests/test_codec.cpp
         tests/test_repositories.cpp
         tests/test_wal.cpp
+        tests/test_account_locks.cpp
     )
     target_link_libraries(bank_tests PRIVATE bank GTest::gtest_main)
     target_include_directories(bank_tests PRIVATE

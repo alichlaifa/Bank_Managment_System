@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -148,3 +149,15 @@ inline std::optional<SessionState> session_state_from_string(std::string_view te
 }
 
 } // namespace bank
+
+namespace std {
+// Hash specialization required for std::unordered_map<AccountId, ...> in
+// AccountLockManager.
+template <typename Tag>
+struct hash<bank::Id<Tag>> {
+    [[nodiscard]] size_t operator()(const bank::Id<Tag>& id) const noexcept
+    {
+        return hash<uint64_t>{}(id.value());
+    }
+};
+} // namespace std
