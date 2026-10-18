@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <mutex>
 #include <vector>
 
 namespace bank {
@@ -19,10 +20,10 @@ namespace bank {
 // "state" field embedded in the JSON payload is informational, and reads
 // always prefer the header.
 //
-// Append semantics are single-threaded by contract: the transaction processor
-// funnels writes through its own locking. On construction the journal is read
-// once into memory; a partial final line (interrupted append) is truncated on
-// the next write.
+// Thread-safe. Lock order: account mutex(es) → WalLogger mutex → (repo mutexes
+// if any). Callers must not acquire an account lock while holding this mutex.
+// On construction the journal is read once into memory; a partial final line
+// (interrupted append) is truncated on the next write.
 class WalLogger {
 public:
     explicit WalLogger(std::filesystem::path path);
@@ -36,7 +37,11 @@ public:
 
     // Number of records in the journal; equals the next LSN (log sequence
     // number) a snapshot would fence to.
-    [[nodiscard]] std::size_t size() const noexcept { return entries_.size(); }
+    [[nodiscard]] std::size_t size() const noexcept
+    {
+        std::lock_guard<std::mutex> guard{mutex_};
+        return entries_.size();
+    }
 
     // All records, in append order, with header state applied on top of the
     // payload. Unparsable payloads are skipped.
@@ -56,6 +61,7 @@ private:
 
     void truncate_interrupted_tail();
 
+    mutable std::mutex mutex_;
     std::filesystem::path path_;
     std::vector<Entry> entries_;
     std::size_t next_offset_{0};

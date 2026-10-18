@@ -60,6 +60,9 @@ find_package(Threads REQUIRED)
 #
 add_library(bank
     src/concurrency/AccountLockManager.cpp
+    src/concurrency/ThreadPool.cpp
+    src/concurrency/TransactionProcessor.cpp
+    src/concurrency/TransactionQueue.cpp
     src/domain/PasswordHasher.cpp
     src/domain/Transaction.cpp
     src/domain/TransactionOps.cpp
@@ -117,6 +120,10 @@ if(BANK_BUILD_TESTS)
         tests/test_repositories.cpp
         tests/test_wal.cpp
         tests/test_account_locks.cpp
+        tests/test_transaction_queue.cpp
+        tests/test_thread_pool.cpp
+        tests/test_transaction_processor.cpp
+        tests/test_stress.cpp
     )
     target_link_libraries(bank_tests PRIVATE bank GTest::gtest_main)
     target_include_directories(bank_tests PRIVATE

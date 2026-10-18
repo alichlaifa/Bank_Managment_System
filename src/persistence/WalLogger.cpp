@@ -113,6 +113,7 @@ void WalLogger::truncate_interrupted_tail()
 //       See Known Limitations in docs/DESIGN_DECISIONS.md.
 void WalLogger::append(const TransactionRecord& record)
 {
+    std::lock_guard<std::mutex> guard{mutex_};
     if (drop_tail_) truncate_interrupted_tail();
 
     const std::string payload = codec::serialize(record);
@@ -142,6 +143,7 @@ void WalLogger::append(const TransactionRecord& record)
 
 void WalLogger::mark_committed(TransactionId id)
 {
+    std::lock_guard<std::mutex> guard{mutex_};
     for (Entry& entry : entries_) {
         if (entry.id != id) continue;
         if (entry.state == TransactionState::Committed) return; // idempotent
@@ -162,6 +164,7 @@ void WalLogger::mark_committed(TransactionId id)
 
 std::vector<TransactionRecord> WalLogger::load_all() const
 {
+    std::lock_guard<std::mutex> guard{mutex_};
     std::vector<TransactionRecord> out;
     out.reserve(entries_.size());
     for (const auto& entry : entries_) {
@@ -175,6 +178,7 @@ std::vector<TransactionRecord> WalLogger::load_all() const
 
 std::vector<TransactionRecord> WalLogger::replay_from(std::size_t from_lsn) const
 {
+    std::lock_guard<std::mutex> guard{mutex_};
     if (from_lsn >= entries_.size()) return {};
 
     std::vector<TransactionRecord> out;
