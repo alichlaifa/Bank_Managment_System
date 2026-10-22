@@ -76,6 +76,11 @@ add_library(bank
     src/persistence/SqliteAuditRepository.cpp
     src/persistence/WalLogger.cpp
     src/persistence/SnapshotStore.cpp
+    src/services/SessionManager.cpp
+    src/services/AuthService.cpp
+    src/services/BankingService.cpp
+    src/services/InterestService.cpp
+    src/services/AuditService.cpp
 )
 add_library(bank::bank ALIAS bank)
 
@@ -124,6 +129,10 @@ if(BANK_BUILD_TESTS)
         tests/test_thread_pool.cpp
         tests/test_transaction_processor.cpp
         tests/test_stress.cpp
+        tests/test_session_manager.cpp
+        tests/test_auth_service.cpp
+        tests/test_banking_service.cpp
+        tests/test_integration.cpp
     )
     target_link_libraries(bank_tests PRIVATE bank GTest::gtest_main)
     target_include_directories(bank_tests PRIVATE
