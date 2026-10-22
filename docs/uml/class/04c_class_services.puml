@@ -17,28 +17,28 @@ skinparam classAttributeIconSize 0
 title Services, Concurrency & API
 
 package "Concurrency" {
-  class ThreadPool <<planned>> {
+  class ThreadPool {
     + submit(job) : void
     + stop() : void
   }
-  class TransactionQueue <<planned>> {
+  class TransactionQueue {
     + push(txn) : void
     + pop() : optional
   }
-  class AccountLockManager <<planned>> {
+  class AccountLockManager {
     + lock(AccountId, AccountId) : ScopedAccountLocks
     + lock(AccountId) : ScopedAccountLock
   }
-  class ScopedAccountLocks <<planned>>
-  class ScopedAccountLock <<planned>>
+  class ScopedAccountLocks
+  class ScopedAccountLock
 }
 
 package "Services" {
-  class AuthService <<planned>> {
+  class AuthService {
     + login(CustomerId, string) : optional
     + logout(string) : void
   }
-  class BankingService <<planned>> {
+  class BankingService {
     + deposit(AccountId, Money) : Result
     + withdraw(AccountId, Money) : Result
     + transfer(AccountId, AccountId, Money) : Result
@@ -47,12 +47,12 @@ package "Services" {
     + freeze(AccountId, AccountStatus) : Result
     + unfreeze(AccountId) : Result
   }
-  class TransactionProcessor <<planned>> {
+  class TransactionProcessor {
     + start() : void
     + stop() : void
     + process(txn) : Result
   }
-  class InterestService <<planned>> {
+  class InterestService {
     + accrueMonthlyInterest() : void
   }
   class Result {
@@ -71,7 +71,7 @@ package "API / UI" {
     + login(CustomerId, string) : optional
     + viewAudit(string, AuditFilter) : vector
   }
-  class SessionManager <<planned>> {
+  class SessionManager {
     + create(CustomerId, Role) : Session
     + validate(string) : optional
   }
